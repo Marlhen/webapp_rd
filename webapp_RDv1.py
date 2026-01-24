@@ -17,7 +17,7 @@ import math
 BASE_URL = "https://drive.haug.com.pe"
 WEBDAV_ROOT = "/public.php/webdav"
 SHARE_TOKEN = "jKJW52r5nNpq6wm"
-CONCURRENCY_LIMIT = 20  
+CONCURRENCY_LIMIT = 40  
 TARGET_EXTENSIONS = ['.pdf'] 
 
 # ==============================================================================
@@ -550,4 +550,5 @@ if st.session_state['scan_data'] is not None:
                 hide_index=True, use_container_width=True
             )
             csv = df_filtered.to_csv(index=False).encode('utf-8-sig')
+
             st.download_button(f"📥 Descargar CSV ({grupo_seleccionado})", csv, f"Reporte_{grupo_seleccionado}.csv", "text/csv", type="primary")
