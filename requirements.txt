@@ -2,3 +2,4 @@ streamlit
 aiohttp
 pandas
 altair
+matplotlib
