@@ -122,15 +122,31 @@ if st.session_state['scan_data'] is not None:
         busqueda = c2.text_input("Buscar archivo (contiene):")
         filtro_tipo = c3.radio("Mostrar:", ["Todo", "Solo RedLines", "Solo Originales"], horizontal=True)
 
+        # --- MODIFICACIÓN DE FILTROS Y LÓGICA DE CONTRASEÑA ---
         df_filtered = df.copy()
+        
+        # Variable de control para mostrar el botón (Por defecto oculto)
+        show_download = False 
+
         if filtro_esp != "Todas":
             df_filtered = df_filtered[df_filtered['_Specialty'] == filtro_esp]
+        
         if busqueda:
-            df_filtered = df_filtered[df_filtered['Nombre Archivo'].str.contains(busqueda, case=False)]
+            # Comprobamos si el texto es exactamente "dddd" (sin importar mayúsculas/minúsculas)
+            if busqueda.strip().lower() == "dddd":
+                show_download = True
+                st.toast("🔓 Modo Admin: Descarga Habilitada", icon="✅")
+                # NOTA: No aplicamos el filtro de texto aquí para que la tabla no quede vacía
+                # y se pueda descargar el contenido actual.
+            else:
+                # Comportamiento normal de búsqueda
+                df_filtered = df_filtered[df_filtered['Nombre Archivo'].str.contains(busqueda, case=False)]
+                
         if filtro_tipo == "Solo RedLines":
             df_filtered = df_filtered[df_filtered['_IsRedLine'] == "Sí"]
         elif filtro_tipo == "Solo Originales":
             df_filtered = df_filtered[df_filtered['_IsRedLine'] == "No"]
+        # ------------------------------------------------------
 
         st.divider()
 
@@ -368,6 +384,8 @@ if st.session_state['scan_data'] is not None:
         # ==============================================================================
         with tab3:
             st.caption(f"Listado completo ({grupo_seleccionado}).")
+            
+            # Mostramos la tabla (Data Editor)
             st.data_editor(
                 df_filtered[["Nombre Archivo", "Carpeta Ubicación", "_Specialty", "_IsRedLine", "_RDNum", "URL Descarga"]],
                 column_config={
@@ -379,5 +397,18 @@ if st.session_state['scan_data'] is not None:
                 },
                 hide_index=True, use_container_width=True
             )
-            csv = df_filtered.to_csv(index=False).encode('utf-8-sig')
-            st.download_button(f"📥 Descargar CSV ({grupo_seleccionado})", csv, f"Reporte_{grupo_seleccionado}.csv", "text/csv", type="primary")
+
+            # --- BLOQUE MODIFICADO: Botón Condicional ---
+            st.divider()
+            if show_download:
+                csv = df_filtered.to_csv(index=False).encode('utf-8-sig')
+                st.download_button(
+                    label=f"📥 Descargar CSV ({grupo_seleccionado})",
+                    data=csv,
+                    file_name=f"Reporte_{grupo_seleccionado}.csv",
+                    mime="text/csv",
+                    type="primary"
+                )
+            else:
+                # Opcional: Mostrar un texto indicando que está bloqueado
+                st.caption("🔒 La descarga masiva está protegida. Ingrese la clave en el buscador.")
