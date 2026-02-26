@@ -106,7 +106,7 @@ with st.sidebar:
     
     st.markdown("---") 
     
-    st.info("Actulizado al 24.01.2026")
+    st.info("Actulizado al 24.02.2026")
     st.caption("Los datos se cargan desde el registro centralizado.")
 
 # --- LÓGICA PRINCIPAL ---
@@ -141,7 +141,18 @@ if st.session_state['scan_data'] is not None:
             df = df_full[df_full['_Category'] == 'Sketch'].copy()
             titulo_seccion = "Sketches (SK)"
 
-        st.markdown(f"### 🎯 Vista Actual: **{titulo_seccion}**")
+        st.markdown(
+            f"""
+            <div style="background-color: #f0f2f6; padding: 15px; border-radius: 10px; border-left: 5px solid #0068c9; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 14px; color: #555;">
+                    <b>Desarrollado y Elaborado por:</b> Jefatura de Construcción y Precomisionado - <b>CAD Proyectos Perú SAC</b><br>
+                    <i>Basado en información TRM recibida por el contratista HAUG.</i>
+                </p>
+                <h4 style="margin: 10px 0 0 0; color: #0068c9;">🎯 Vista Actual: {titulo_seccion}</h4>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
 
         st.subheader("🔎 Filtros de Visualización (Para Matriz y Listado)")
         c1, c2, c3 = st.columns(3)
@@ -441,3 +452,4 @@ if st.session_state['scan_data'] is not None:
             else:
                 # Opcional: Mostrar un texto indicando que está bloqueado
                 st.caption("🔒 La descarga masiva está protegida. Ingrese la clave en el buscador.")
+
