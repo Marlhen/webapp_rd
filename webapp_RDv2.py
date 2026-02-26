@@ -3,6 +3,7 @@ import pandas as pd
 import altair as alt
 import math
 import os
+import urllib.parse
 
 # ==========================================
 #      CONFIGURACIÓN
@@ -26,8 +27,30 @@ def load_data():
     Carga los datos desde la URL del Google Sheet (CSV).
     """
     try:
-        # Leemos el CSV. Si hay líneas con errores, las saltamos para no romper la app.
         df = pd.read_csv(GSHEET_URL, on_bad_lines='skip')
+        
+        # --- MEJORA: Transformar links WebDAV a Links Directos (Compatibilidad Móvil) ---
+        if 'URL Descarga' in df.columns:
+            def fix_link(url):
+                if isinstance(url, str) and ":@" in url and "public.php/webdav" in url:
+                    try:
+                        # Extraer componentes: https://TOKEN:@HOST/public.php/webdav/PATH
+                        # Buscamos el token y el host
+                        parts = url.replace("https://", "").split("/")
+                        auth_part = parts[0]
+                        if ":@" in auth_part:
+                            token, host = auth_part.split(":@")
+                            # La ruta empieza después de /public.php/webdav/
+                            path_index = url.find("/public.php/webdav/") + len("/public.php/webdav/")
+                            relative_path = url[path_index:]
+                            # Retornamos el formato de descarga directa de Nextcloud
+                            return f"https://{host}/s/{token}/download?path=/{relative_path}"
+                    except:
+                        return url
+                return url
+            
+            df['URL Descarga'] = df['URL Descarga'].apply(fix_link)
+        
         return df
     except Exception as e:
         st.error(f"Error crítico al cargar la base de datos: {e}")
