@@ -29,35 +29,28 @@ def load_data():
     try:
         df = pd.read_csv(GSHEET_URL, on_bad_lines='skip')
         
-        # --- MEJORA: Transformar links WebDAV a Links Directos (Compatibilidad Móvil) ---
+        # --- MEJORA: Transformar links WebDAV a Links Directos (Compatibilidad Móvil + Evita ZIP) ---
         if 'URL Descarga' in df.columns:
             def fix_link(url):
                 if not isinstance(url, str): return url
                 
-                # Caso A: Viene con el formato TOKEN:@HOST/public.php/webdav/...
-                if "public.php/webdav" in url:
-                    try:
-                        # Extraer el TOKEN y el HOST
-                        # Ejemplo: https://jKJW52r5nNpq6wm:@drive.haug.com.pe/public.php/webdav/Directorio/Archivo.pdf
-                        match = re.search(r"https://([^:]+):@([^/]+)/public\.php/webdav(/.+)", url)
-                        if match:
-                            token = match.group(1)
-                            host = match.group(2)
-                            path = match.group(3)
-                            # Formato compatible con link público (NO requiere Auth Basic)
-                            return f"https://{host}/s/{token}/download?path={urllib.parse.quote(path)}"
-                    except:
-                        pass
+                # Buscamos el TOKEN y el NOMBRE DEL ARCHIVO
+                # El token suele ser jKJW52r5nNpq6wm según tus scripts
+                token = "jKJW52r5nNpq6wm"
+                host = "drive.haug.com.pe"
                 
-                # Caso B: Ya viene con /s/ pero quizás sin /download (aseguramos descarga directa)
-                if "/s/" in url and "/download" not in url:
-                    url = url.replace("/index.php/s/", "/s/").replace("/s/", "/s/")
-                    if "?" in url: return url + "&download"
-                    else: return url + "/download"
+                try:
+                    # Extraer el nombre del archivo de la URL original
+                    # Las URLs de WebDAV terminan en el nombre del archivo
+                    filename = url.split('/')[-1]
+                    if not filename: filename = url.split('/')[-2] # Por si termina en /
                     
-                return url
+                    # Formato oficial Nextcloud para descargar UN SOLO ARCHIVO de un share público
+                    # Esto evita el .zip y funciona en móviles sin login
+                    return f"https://{host}/index.php/s/{token}/download?files={urllib.parse.quote(filename)}"
+                except:
+                    return url
             
-            import re
             df['URL Descarga'] = df['URL Descarga'].apply(fix_link)
         
         return df
