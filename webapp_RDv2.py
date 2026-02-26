@@ -29,24 +29,26 @@ def load_data():
     try:
         df = pd.read_csv(GSHEET_URL, on_bad_lines='skip')
         
-        # --- MEJORA FINAL: Transformar links para descarga individual (Móvil + No ZIP) ---
+        # --- MEJORA FINAL Y DEFINITIVA: Formato WebDAV Público (Móvil + No ZIP + Sí Descarga) ---
         if 'URL Descarga' in df.columns and 'Carpeta Ubicación' in df.columns and 'Nombre Archivo' in df.columns:
             token = "jKJW52r5nNpq6wm"
             host = "drive.haug.com.pe"
             
             def fix_row_link(row):
                 try:
-                    folder = str(row['Carpeta Ubicación']).strip()
-                    filename = str(row['Nombre Archivo']).strip()
+                    folder = str(row['Carpeta Ubicación']).strip().strip('/')
+                    filename = str(row['Nombre Archivo']).strip().strip('/')
                     
-                    # Asegurar formato de ruta: /Carpeta/Archivo.pdf
-                    if not folder.startswith('/'): folder = '/' + folder
-                    if folder.endswith('/'): full_path = folder + filename
-                    else: full_path = folder + '/' + filename
+                    # El endpoint /public.php/dav/files/ TOKEN / RUTA es el que usa el servidor
+                    # para descargas directas individuales. NO requiere TOKEN:@ en el host
+                    # para enlaces compartidos públicos.
+                    if folder:
+                        full_path = f"{folder}/{filename}"
+                    else:
+                        full_path = filename
                     
-                    # Endpoint de descarga directa pública
-                    # Solo usamos 'path' con la ruta completa para evitar el ZIP
-                    return f"https://{host}/index.php/s/{token}/download?path={urllib.parse.quote(full_path)}"
+                    # Construir la URL de WebDAV pública oficial
+                    return f"https://{host}/public.php/dav/files/{token}/{urllib.parse.quote(full_path)}"
                 except:
                     return row['URL Descarga']
             
