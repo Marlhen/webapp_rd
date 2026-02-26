@@ -9,7 +9,9 @@ import os
 # ==========================================
 
 # URL del archivo CSV/Excel que sirve como base de datos histórica
-GSHEET_URL = "https://drive.google.com/uc?id=15EAxTJ1UaGwsW2xRqbN-HDFa9JWNLhG7&export=download"
+GSHEET_URL = "https://drive.google.com/uc?id=16bFXpugBG_xpTsYbFnw46Ebf4L07kAf4&export=download"
+
+
 
 # Configuración de la página
 st.set_page_config(page_title="Control de plano de construcción", layout="wide", page_icon="📊")
@@ -71,7 +73,7 @@ with st.sidebar:
     logo_path = "logo_CPP_Rev01.png"
     
     if os.path.exists(logo_path):
-        st.image(logo_path, use_container_width=True)
+        st.image(logo_path, width="stretch")
     else:
         st.markdown("### CAD PROYECTOS PERU, SAC")
     
@@ -278,13 +280,13 @@ if st.session_state['scan_data'] is not None:
             with c_chart1:
                 st.subheader("📊 % de Planos Proyecto con RD")
                 chart_p = generar_grafico_altair(df_chart_planos, "#ff4b4b")
-                if chart_p: st.altair_chart(chart_p, use_container_width=True)
+                if chart_p: st.altair_chart(chart_p, width="stretch")
                 else: st.info("Sin datos.")
 
             with c_chart2:
                 st.subheader("📊 % de Sketches con RD")
                 chart_s = generar_grafico_altair(df_chart_sk, "#4b4bff")
-                if chart_s: st.altair_chart(chart_s, use_container_width=True)
+                if chart_s: st.altair_chart(chart_s, width="stretch")
                 else: st.info("Sin datos.")
 
             st.divider()
@@ -305,14 +307,14 @@ if st.session_state['scan_data'] is not None:
                 st.markdown("**Detalle Planos**")
                 if not df_table_planos.empty:
                     height_p = (len(df_table_planos) + 1) * 35 + 3
-                    st.dataframe(df_table_planos, column_config=col_config_kpi, hide_index=True, use_container_width=True, height=height_p)
+                    st.dataframe(df_table_planos, column_config=col_config_kpi, hide_index=True, width="stretch", height=height_p)
                 else: st.write("No hay datos.")
 
             with col_t2:
                 st.markdown("**Detalle Sketches**")
                 if not df_table_sk.empty:
                     height_s = (len(df_table_sk) + 1) * 35 + 3
-                    st.dataframe(df_table_sk, column_config=col_config_kpi, hide_index=True, use_container_width=True, height=height_s)
+                    st.dataframe(df_table_sk, column_config=col_config_kpi, hide_index=True, width="stretch", height=height_s)
                 else: st.write("No hay datos.")
 
         # ==============================================================================
@@ -348,7 +350,7 @@ if st.session_state['scan_data'] is not None:
                 height_pivot = (len(pivot_global) + 1) * 35 + 3
                 st.dataframe(
                     pivot_global.style.background_gradient(cmap="Blues", axis=0).format("{:.0f}"), 
-                    use_container_width=True, 
+                    width="stretch", 
                     height=height_pivot
                 )
 
@@ -376,7 +378,7 @@ if st.session_state['scan_data'] is not None:
                         st.data_editor(
                             pivot_links.reset_index(),
                             column_config=column_config_dynamic,
-                            hide_index=True, disabled=True, use_container_width=True, height=height_links
+                            hide_index=True, disabled=True, width="stretch", height=height_links
                         )
 
         # ==============================================================================
@@ -395,7 +397,7 @@ if st.session_state['scan_data'] is not None:
                     "_IsRedLine": st.column_config.TextColumn("Es RD?", width="small"),
                     "_RDNum": st.column_config.NumberColumn("N° Rev", width="small")
                 },
-                hide_index=True, use_container_width=True
+                hide_index=True, width="stretch"
             )
 
             # --- BLOQUE MODIFICADO: Botón Condicional ---
