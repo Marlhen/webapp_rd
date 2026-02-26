@@ -32,23 +32,32 @@ def load_data():
         # --- MEJORA: Transformar links WebDAV a Links Directos (Compatibilidad Móvil) ---
         if 'URL Descarga' in df.columns:
             def fix_link(url):
-                if isinstance(url, str) and ":@" in url and "public.php/webdav" in url:
+                if not isinstance(url, str): return url
+                
+                # Caso A: Viene con el formato TOKEN:@HOST/public.php/webdav/...
+                if "public.php/webdav" in url:
                     try:
-                        # Extraer componentes: https://TOKEN:@HOST/public.php/webdav/PATH
-                        # Buscamos el token y el host
-                        parts = url.replace("https://", "").split("/")
-                        auth_part = parts[0]
-                        if ":@" in auth_part:
-                            token, host = auth_part.split(":@")
-                            # La ruta empieza después de /public.php/webdav/
-                            path_index = url.find("/public.php/webdav/") + len("/public.php/webdav/")
-                            relative_path = url[path_index:]
-                            # Retornamos el formato de descarga directa de Nextcloud
-                            return f"https://{host}/s/{token}/download?path=/{relative_path}"
+                        # Extraer el TOKEN y el HOST
+                        # Ejemplo: https://jKJW52r5nNpq6wm:@drive.haug.com.pe/public.php/webdav/Directorio/Archivo.pdf
+                        match = re.search(r"https://([^:]+):@([^/]+)/public\.php/webdav(/.+)", url)
+                        if match:
+                            token = match.group(1)
+                            host = match.group(2)
+                            path = match.group(3)
+                            # Formato compatible con link público (NO requiere Auth Basic)
+                            return f"https://{host}/s/{token}/download?path={urllib.parse.quote(path)}"
                     except:
-                        return url
+                        pass
+                
+                # Caso B: Ya viene con /s/ pero quizás sin /download (aseguramos descarga directa)
+                if "/s/" in url and "/download" not in url:
+                    url = url.replace("/index.php/s/", "/s/").replace("/s/", "/s/")
+                    if "?" in url: return url + "&download"
+                    else: return url + "/download"
+                    
                 return url
             
+            import re
             df['URL Descarga'] = df['URL Descarga'].apply(fix_link)
         
         return df
