@@ -36,17 +36,17 @@ def load_data():
             
             def fix_row_link(row):
                 try:
-                    folder = str(row['Carpeta Ubicación'])
-                    filename = str(row['Nombre Archivo'])
+                    folder = str(row['Carpeta Ubicación']).strip()
+                    filename = str(row['Nombre Archivo']).strip()
                     
-                    # Asegurar que la carpeta empiece con /
+                    # Asegurar formato de ruta: /Carpeta/Archivo.pdf
                     if not folder.startswith('/'): folder = '/' + folder
+                    if folder.endswith('/'): full_path = folder + filename
+                    else: full_path = folder + '/' + filename
                     
-                    # Endpoint oficial de descarga individual de Nextcloud
-                    # path: carpeta donde reside el archivo
-                    # files: nombre del archivo a descargar
-                    new_url = f"https://{host}/index.php/s/{token}/download?path={urllib.parse.quote(folder)}&files={urllib.parse.quote(filename)}"
-                    return new_url
+                    # Endpoint de descarga directa pública
+                    # Solo usamos 'path' con la ruta completa para evitar el ZIP
+                    return f"https://{host}/index.php/s/{token}/download?path={urllib.parse.quote(full_path)}"
                 except:
                     return row['URL Descarga']
             
