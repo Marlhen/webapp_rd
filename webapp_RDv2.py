@@ -29,29 +29,28 @@ def load_data():
     try:
         df = pd.read_csv(GSHEET_URL, on_bad_lines='skip')
         
-        # --- MEJORA: Transformar links WebDAV a Links Directos (Compatibilidad Móvil + Evita ZIP) ---
-        if 'URL Descarga' in df.columns:
-            def fix_link(url):
-                if not isinstance(url, str): return url
-                
-                # Buscamos el TOKEN y el NOMBRE DEL ARCHIVO
-                # El token suele ser jKJW52r5nNpq6wm según tus scripts
-                token = "jKJW52r5nNpq6wm"
-                host = "drive.haug.com.pe"
-                
-                try:
-                    # Extraer el nombre del archivo de la URL original
-                    # Las URLs de WebDAV terminan en el nombre del archivo
-                    filename = url.split('/')[-1]
-                    if not filename: filename = url.split('/')[-2] # Por si termina en /
-                    
-                    # Formato oficial Nextcloud para descargar UN SOLO ARCHIVO de un share público
-                    # Esto evita el .zip y funciona en móviles sin login
-                    return f"https://{host}/index.php/s/{token}/download?files={urllib.parse.quote(filename)}"
-                except:
-                    return url
+        # --- MEJORA FINAL: Transformar links para descarga individual (Móvil + No ZIP) ---
+        if 'URL Descarga' in df.columns and 'Carpeta Ubicación' in df.columns and 'Nombre Archivo' in df.columns:
+            token = "jKJW52r5nNpq6wm"
+            host = "drive.haug.com.pe"
             
-            df['URL Descarga'] = df['URL Descarga'].apply(fix_link)
+            def fix_row_link(row):
+                try:
+                    folder = str(row['Carpeta Ubicación'])
+                    filename = str(row['Nombre Archivo'])
+                    
+                    # Asegurar que la carpeta empiece con /
+                    if not folder.startswith('/'): folder = '/' + folder
+                    
+                    # Endpoint oficial de descarga individual de Nextcloud
+                    # path: carpeta donde reside el archivo
+                    # files: nombre del archivo a descargar
+                    new_url = f"https://{host}/index.php/s/{token}/download?path={urllib.parse.quote(folder)}&files={urllib.parse.quote(filename)}"
+                    return new_url
+                except:
+                    return row['URL Descarga']
+            
+            df['URL Descarga'] = df.apply(fix_row_link, axis=1)
         
         return df
     except Exception as e:
