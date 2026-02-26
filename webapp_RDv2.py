@@ -29,26 +29,27 @@ def load_data():
     try:
         df = pd.read_csv(GSHEET_URL, on_bad_lines='skip')
         
-        # --- MEJORA FINAL Y DEFINITIVA: Formato WebDAV Público (Móvil + No ZIP + Sí Descarga) ---
+        # --- SOLUCIÓN FINAL: Formato Directo Dav Files (Evita ZIP + Compatible Móvil) ---
         if 'URL Descarga' in df.columns and 'Carpeta Ubicación' in df.columns and 'Nombre Archivo' in df.columns:
             token = "jKJW52r5nNpq6wm"
             host = "drive.haug.com.pe"
             
             def fix_row_link(row):
                 try:
+                    # Limpiamos carpeta y archivo
                     folder = str(row['Carpeta Ubicación']).strip().strip('/')
                     filename = str(row['Nombre Archivo']).strip().strip('/')
                     
-                    # El endpoint /public.php/dav/files/ TOKEN / RUTA es el que usa el servidor
-                    # para descargas directas individuales. NO requiere TOKEN:@ en el host
-                    # para enlaces compartidos públicos.
+                    # Construir la ruta relativa completa dentro del share
                     if folder:
-                        full_path = f"{folder}/{filename}"
+                        relative_path = f"{folder}/{filename}"
                     else:
-                        full_path = filename
+                        relative_path = filename
                     
-                    # Construir la URL de WebDAV pública oficial
-                    return f"https://{host}/public.php/dav/files/{token}/{urllib.parse.quote(full_path)}"
+                    # Formato capturado del servidor para descarga directa:
+                    # https://host/public.php/dav/files/TOKEN/RUTA_COMPLETA
+                    # NO usar parámetros ?path= ni ?files= para evitar el ZIP
+                    return f"https://{host}/public.php/dav/files/{token}/{urllib.parse.quote(relative_path)}"
                 except:
                     return row['URL Descarga']
             
