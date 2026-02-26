@@ -148,7 +148,6 @@ if st.session_state['scan_data'] is not None:
                     <b>Desarrollado y Elaborado por:</b> Jefatura de Construcción y Precomisionado - <b>CAD Proyectos Perú SAC</b><br>
                     <i>Basado en información TRM recibida por el contratista HAUG.</i>
                 </p>
-                <h4 style="margin: 10px 0 0 0; color: #0068c9;">🎯 Vista Actual: {titulo_seccion}</h4>
             </div>
             """, 
             unsafe_allow_html=True
@@ -452,4 +451,3 @@ if st.session_state['scan_data'] is not None:
             else:
                 # Opcional: Mostrar un texto indicando que está bloqueado
                 st.caption("🔒 La descarga masiva está protegida. Ingrese la clave en el buscador.")
-
